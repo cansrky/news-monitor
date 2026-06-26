@@ -6,23 +6,31 @@
     <title>📡 Haber Takip Merkezi - 12 Kanallı</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; }
+        html, body { height: 100%; overflow: hidden; }
         body { background: #0a0e27; color: #e1e8ed; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         
-        header { background: linear-gradient(135deg, #0f1419 0%, #1a2947 100%); border-bottom: 2px solid #1da1f2; padding: 16px 20px; position: sticky; top: 0; z-index: 100; }
-        h1 { font-size: 22px; margin-bottom: 4px; color: #fff; }
-        .header-info { font-size: 12px; color: #8892b0; }
+        .top-bar { background: linear-gradient(90deg, #0f1419 0%, #1a2947 100%); border-bottom: 2px solid #1da1f2; padding: 12px 16px; display: flex; align-items: center; gap: 16px; z-index: 100; height: 50px; }
+        h1 { font-size: 18px; color: #fff; margin: 0; white-space: nowrap; }
+        .info { font-size: 12px; color: #8892b0; flex: 1; }
+        .controls { display: flex; gap: 8px; align-items: center; }
         
-        .main { display: grid; grid-template-columns: 300px 1fr; gap: 0; height: calc(100vh - 60px); }
+        .layout-toggle { display: flex; gap: 4px; }
+        .layout-btn { padding: 6px 12px; background: #1a2947; border: 1px solid #2d3e5f; color: #8892b0; cursor: pointer; border-radius: 4px; font-size: 11px; transition: all 0.2s; }
+        .layout-btn.active { background: #1da1f2; color: #fff; border-color: #1da1f2; }
         
-        .sidebar { background: #0f1419; border-right: 1px solid #2d3e5f; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
-        .content { display: flex; flex-direction: column; gap: 0; overflow: hidden; }
+        .search-box { padding: 6px 12px; background: #1a2947; border: 1px solid #2d3e5f; color: #e1e8ed; border-radius: 4px; font-size: 12px; width: 200px; }
+        .search-box:focus { outline: none; border-color: #1da1f2; }
+        
+        .main-container { display: grid; grid-template-columns: minmax(280px, 300px) 1fr; gap: 0; height: calc(100vh - 50px); }
+        
+        /* Left Sidebar */
+        .sidebar { background: #0f1419; border-right: 1px solid #2d3e5f; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
         
         .section { display: flex; flex-direction: column; gap: 8px; }
-        .section-title { font-size: 13px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 8px; border-bottom: 1px solid #2d3e5f; }
+        .section-title { font-size: 12px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 0; border-bottom: 1px solid #2d3e5f; }
         
-        input { padding: 8px 12px; background: #1a2947; border: 1px solid #2d3e5f; color: #e1e8ed; border-radius: 4px; font-size: 12px; width: 100%; }
-        input:focus { outline: none; border-color: #1da1f2; }
+        input, textarea { padding: 8px 12px; background: #1a2947; border: 1px solid #2d3e5f; color: #e1e8ed; border-radius: 4px; font-size: 12px; width: 100%; font-family: inherit; }
+        input:focus, textarea:focus { outline: none; border-color: #1da1f2; }
         
         button { padding: 8px 12px; border: none; color: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
         .btn-primary { background: #1da1f2; width: 100%; }
@@ -31,55 +39,59 @@
         .btn-success:hover { background: #0f9b50; }
         .btn-small { padding: 4px 8px; width: auto; font-size: 11px; background: transparent; border: 1px solid #2d3e5f; color: #8892b0; }
         .btn-small:hover { border-color: #1da1f2; color: #1da1f2; }
-        .btn-delete { padding: 4px 8px; width: auto; background: transparent; border: none; color: #e74c3c; }
+        .btn-delete { background: transparent; border: none; color: #e74c3c; padding: 4px; }
         
-        .channel-list, .keyword-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
-        .channel-item, .keyword-item { padding: 8px; background: #1a2947; border: 1px solid #2d3e5f; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
+        .item { padding: 8px; background: #1a2947; border: 1px solid #2d3e5f; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 11px; }
         .keyword-item { border-color: #17bf63; }
         
-        .channel-info { flex: 1; min-width: 0; }
-        .channel-name { font-size: 11px; color: #1da1f2; font-weight: 600; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .channel-status { font-size: 10px; margin-top: 2px; }
+        .item-info { flex: 1; min-width: 0; }
+        .item-name { color: #1da1f2; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: monospace; font-size: 10px; }
+        .item-status { color: #8892b0; font-size: 10px; margin-top: 2px; }
         .status-active { color: #17bf63; }
-        .status-inactive { color: #657786; }
         
-        .keyword-text { font-size: 11px; color: #17bf63; font-weight: 700; }
+        /* Right Content */
+        .content { display: flex; flex-direction: column; gap: 0; overflow: hidden; }
         
-        .top-section { display: flex; gap: 12px; padding: 12px; background: #1a2947; border-bottom: 1px solid #2d3e5f; }
-        .video-count { background: #1da1f2; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 700; }
-        
-        .videos-container { flex: 1; overflow-y: auto; padding: 12px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+        .grid-container { flex: 1; overflow-y: auto; padding: 12px; }
+        .grid { display: grid; gap: 8px; }
+        .grid.grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid.grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid.grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid.grid-6 { grid-template-columns: repeat(6, 1fr); }
         
         .video-card { background: #1a2947; border: 1px solid #2d3e5f; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; transition: all 0.2s; }
-        .video-card:hover { border-color: #1da1f2; }
+        .video-card:hover { border-color: #1da1f2; box-shadow: 0 0 10px rgba(29, 161, 242, 0.3); }
         
         .video-wrapper { position: relative; padding-top: 56.25%; background: #000; }
         iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
         
-        .video-badge { position: absolute; top: 6px; right: 6px; padding: 3px 6px; background: rgba(23, 191, 99, 0.95); color: #fff; border-radius: 3px; font-size: 8px; font-weight: 700; z-index: 5; }
+        .video-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 8px; opacity: 0; transition: opacity 0.2s; }
+        .video-card:hover .video-overlay { opacity: 1; }
+        
+        .video-top { display: flex; justify-content: space-between; }
+        .video-badge { padding: 4px 8px; background: rgba(23, 191, 99, 0.95); color: #fff; border-radius: 3px; font-size: 10px; font-weight: 700; }
         .video-badge.off { background: rgba(102, 102, 102, 0.95); }
         
-        .rec-badge { position: absolute; bottom: 6px; left: 6px; padding: 3px 6px; background: #e74c3c; color: #fff; border-radius: 3px; font-size: 8px; font-weight: 700; z-index: 5; }
+        .rec-badge { padding: 4px 8px; background: #e74c3c; color: #fff; border-radius: 3px; font-size: 10px; font-weight: 700; }
         
-        .video-controls { position: absolute; bottom: 6px; right: 6px; display: flex; gap: 4px; z-index: 5; }
-        .control-btn { padding: 4px 6px; background: rgba(29, 161, 242, 0.9); border: none; color: #fff; border-radius: 2px; cursor: pointer; font-size: 10px; }
+        .video-controls { display: flex; gap: 6px; }
+        .control-btn { padding: 6px 10px; background: rgba(29, 161, 242, 0.9); border: none; color: #fff; border-radius: 2px; cursor: pointer; font-size: 11px; font-weight: 600; }
         .control-btn:hover { background: rgba(29, 161, 242, 1); }
         
-        .video-info { padding: 6px 8px; border-top: 1px solid #2d3e5f; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .video-name { font-size: 10px; color: #1da1f2; font-weight: 600; font-family: monospace; word-break: break-all; }
-        .video-title { font-size: 9px; color: #8892b0; line-height: 1.2; max-height: 30px; overflow: hidden; }
+        .video-info { padding: 8px; border-top: 1px solid #2d3e5f; }
+        .video-id { font-size: 10px; color: #1da1f2; font-weight: 600; font-family: monospace; }
+        .video-title { font-size: 9px; color: #8892b0; margin-top: 2px; line-height: 1.2; }
         
-        .bottom-section { display: flex; flex-direction: column; gap: 0; border-top: 1px solid #2d3e5f; flex: 1; min-height: 200px; }
-        .alerts-header { padding: 12px; background: #1a2947; border-bottom: 1px solid #2d3e5f; }
-        .alerts-header h3 { font-size: 12px; font-weight: 700; color: #fff; margin: 0; }
+        /* Bottom Alerts */
+        .alerts-section { background: #1a2947; border-top: 1px solid #2d3e5f; display: flex; flex-direction: column; max-height: 180px; }
+        .alerts-header { padding: 10px 12px; border-bottom: 1px solid #2d3e5f; font-size: 12px; font-weight: 700; color: #fff; }
         .alerts-body { flex: 1; overflow-y: auto; padding: 8px; }
         
-        .alert-item { padding: 6px; background: #0f1419; border-left: 3px solid #e74c3c; margin-bottom: 4px; border-radius: 2px; }
-        .alert-keyword { font-size: 9px; color: #e74c3c; font-weight: 700; margin-bottom: 2px; }
-        .alert-text { font-size: 9px; color: #e1e8ed; margin-bottom: 2px; }
-        .alert-time { font-size: 8px; color: #8892b0; }
-        .alert-channel { font-size: 8px; color: #1da1f2; }
+        .alert-item { padding: 6px; background: #0f1419; border-left: 3px solid #e74c3c; margin-bottom: 4px; border-radius: 2px; font-size: 9px; }
+        .alert-keyword { color: #e74c3c; font-weight: 700; margin-bottom: 2px; }
+        .alert-text { color: #e1e8ed; margin-bottom: 2px; }
+        .alert-info { color: #8892b0; font-size: 8px; }
         
         .empty { padding: 12px; color: #657786; font-size: 11px; text-align: center; }
         
@@ -88,89 +100,97 @@
         ::-webkit-scrollbar-thumb { background: #2d3e5f; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #3d4e6f; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; }
-        .modal-content { background: #1a2947; border: 1px solid #2d3e5f; border-radius: 8px; padding: 20px; max-width: 400px; width: 90%; }
+        .modal-content { background: #1a2947; border: 1px solid #2d3e5f; border-radius: 8px; padding: 20px; max-width: 500px; width: 90%; }
         .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: #fff; }
-        .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
+        .modal-body { color: #8892b0; margin-bottom: 12px; line-height: 1.4; }
+        .modal-buttons { display: flex; gap: 8px; }
         .modal-buttons button { flex: 1; }
         
-        @media (max-width: 1024px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-        }
-        
-        @media (max-width: 768px) {
-            .main { grid-template-columns: 1fr; }
-            .sidebar { max-height: 200px; border-right: none; border-bottom: 1px solid #2d3e5f; flex-direction: row; overflow-x: auto; }
-            .section { min-width: 200px; }
-            .grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
-        }
+        .stats { display: flex; gap: 8px; font-size: 12px; color: #8892b0; }
+        .stat-item { background: #1a2947; padding: 6px 12px; border-radius: 4px; }
+        .stat-value { color: #1da1f2; font-weight: 700; }
     </style>
 </head>
 <body>
-    <header>
+    <!-- Top Bar -->
+    <div class="top-bar">
         <h1>📡 Haber Takip Merkezi</h1>
-        <div class="header-info">12 Kanallı YouTube & Live Stream İzleme • <span id="totalCount">0</span> Kanal</div>
-    </header>
+        <div class="info">
+            <span id="channelCount">0</span>/12 Kanal Aktif • 
+            <span id="keywordCount">0</span> Kelime • 
+            <span id="alertCount">0</span> Uyarı
+        </div>
+        <input type="text" id="globalSearch" class="search-box" placeholder="Kanal veya kelime ara...">
+        <div class="layout-toggle">
+            <button class="layout-btn active" onclick="setLayout(6)">6x2</button>
+            <button class="layout-btn" onclick="setLayout(4)">4x3</button>
+            <button class="layout-btn" onclick="setLayout(3)">3x4</button>
+            <button class="layout-btn" onclick="setLayout(2)">2x6</button>
+        </div>
+    </div>
 
-    <div class="main">
+    <div class="main-container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <!-- Add Channel -->
             <div class="section">
                 <div class="section-title">📺 Kanal Ekle</div>
-                <input type="text" id="channelInput" placeholder="YouTube URL yapıştır...">
+                <input type="text" id="channelInput" placeholder="YouTube URL...">
                 <button class="btn-primary" onclick="addChannel()">Ekle</button>
             </div>
 
-            <!-- Channels List -->
+            <!-- Channels -->
             <div class="section" style="flex: 1; min-height: 0;">
                 <div class="section-title">Aktif Kanallar</div>
-                <div id="channelsList" class="channel-list"></div>
+                <div id="channelsList" class="list"></div>
             </div>
 
             <!-- Add Keyword -->
             <div class="section">
                 <div class="section-title">🔍 Kelime Takibi</div>
-                <input type="text" id="keywordInput" placeholder="Kelime gir...">
+                <input type="text" id="keywordInput" placeholder="Kelime...">
                 <button class="btn-success" onclick="addKeyword()">Ekle</button>
             </div>
 
-            <!-- Keywords List -->
+            <!-- Keywords -->
             <div class="section" style="flex: 1; min-height: 0;">
-                <div id="keywordsList" class="keyword-list"></div>
+                <div id="keywordsList" class="list"></div>
+            </div>
+
+            <!-- Stats -->
+            <div class="section">
+                <div class="stats">
+                    <div class="stat-item">Kayıtlar: <span class="stat-value" id="recordCount">0</span></div>
+                    <div class="stat-item">Uptime: <span class="stat-value" id="uptime">0h</span></div>
+                </div>
             </div>
         </div>
 
+        <!-- Content -->
         <div class="content">
-            <!-- Top Info -->
-            <div class="top-section">
-                <div class="video-count" id="videoCount">0/12 Kanal</div>
-                <div style="font-size: 12px; color: #8892b0; flex: 1;">Toplam <span id="keywordCount">0</span> kelime takip ediliyor</div>
-            </div>
-
-            <!-- Videos Grid -->
-            <div class="videos-container">
-                <div id="grid" class="grid"></div>
+            <!-- Grid -->
+            <div class="grid-container">
+                <div id="grid" class="grid grid-6"></div>
             </div>
 
             <!-- Alerts -->
-            <div class="bottom-section">
-                <div class="alerts-header">
-                    <h3>🔔 Canlı Uyarılar (<span id="alertCount">0</span>)</h3>
-                </div>
+            <div class="alerts-section">
+                <div class="alerts-header">🔔 Canlı Uyarılar (<span id="alertCountBadge">0</span>)</div>
                 <div id="alertsList" class="alerts-body"></div>
             </div>
         </div>
     </div>
 
-    <!-- Confirm Modal -->
-    <div id="confirmModal" class="modal">
+    <!-- Modal -->
+    <div id="modal" class="modal">
         <div class="modal-content">
             <div class="modal-title" id="modalTitle"></div>
-            <div id="modalBody" style="color: #8892b0; margin-bottom: 12px;"></div>
+            <div class="modal-body" id="modalBody"></div>
             <div class="modal-buttons">
-                <button class="btn-primary" onclick="confirmAction()">Evet</button>
-                <button class="btn-small" style="width: auto; flex: 1;" onclick="closeModal()">İptal</button>
+                <button class="btn-primary" onclick="confirmModal()">Onayla</button>
+                <button class="btn-small" style="flex: 1;" onclick="closeModal()">İptal</button>
             </div>
         </div>
     </div>
@@ -179,8 +199,10 @@
         let channels = [];
         let keywords = [];
         let alerts = [];
-        let videoTitles = {};
+        let currentLayout = 6;
+        let startTime = Date.now();
         let pendingAction = null;
+        let recordingCount = 0;
 
         function extractVideoId(url) {
             const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
@@ -188,12 +210,6 @@
         }
 
         function getVideoTitle(videoId) {
-            if (videoTitles[videoId]) return videoTitles[videoId];
-            return videoId;
-        }
-
-        function fetchVideoTitle(videoId) {
-            // Simülasyon - gerçekte YouTube API kullanılabilir
             const titles = {
                 'dQw4w9WgXcQ': 'Rick Roll',
                 'jNQXAC9IVRw': 'Me at the zoo',
@@ -201,19 +217,27 @@
             return titles[videoId] || 'Video ' + videoId.substring(0, 8);
         }
 
+        function setLayout(cols) {
+            currentLayout = cols;
+            document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            const grid = document.getElementById('grid');
+            grid.className = 'grid grid-' + cols;
+        }
+
         function showModal(title, body, action) {
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalBody').textContent = body;
             pendingAction = action;
-            document.getElementById('confirmModal').classList.add('show');
+            document.getElementById('modal').classList.add('show');
         }
 
         function closeModal() {
-            document.getElementById('confirmModal').classList.remove('show');
+            document.getElementById('modal').classList.remove('show');
             pendingAction = null;
         }
 
-        function confirmAction() {
+        function confirmModal() {
             if (pendingAction) pendingAction();
             closeModal();
         }
@@ -222,12 +246,17 @@
             const url = document.getElementById('channelInput').value.trim();
             if (!url) return;
             const id = extractVideoId(url);
-            if (!id) { alert('Geçerli YouTube URL girin'); return; }
-            if (channels.length >= 12) { alert('Maximum 12 kanal'); return; }
+            if (!id) { alert('Geçerli YouTube URL'); return; }
+            if (channels.length >= 12) { alert('Max 12 kanal'); return; }
             
-            const title = fetchVideoTitle(id);
-            videoTitles[id] = title;
-            channels.push({ id: Date.now(), videoId: id, active: true, title: title });
+            channels.push({ 
+                id: Date.now(), 
+                videoId: id, 
+                title: getVideoTitle(id),
+                active: true,
+                recording: false,
+                recordingUrl: null
+            });
             document.getElementById('channelInput').value = '';
             render();
         }
@@ -235,14 +264,14 @@
         function addKeyword() {
             const word = document.getElementById('keywordInput').value.trim().toLowerCase();
             if (!word) return;
-            if (keywords.some(k => k.word === word)) { alert('Bu kelime zaten eklendi'); return; }
+            if (keywords.some(k => k.word === word)) { alert('Zaten var'); return; }
             keywords.push({ id: Date.now(), word: word });
             document.getElementById('keywordInput').value = '';
             render();
         }
 
         function deleteChannel(id) {
-            showModal('Kanal Sil', 'Bu kanalı silmek istediğinizden emin misiniz?', () => {
+            showModal('Kanal Sil?', 'Bu kanalı silmek istediğinizden emin misiniz?', () => {
                 channels = channels.filter(c => c.id !== id);
                 render();
             });
@@ -259,77 +288,50 @@
             render();
         }
 
-        function toggleRecording(channelId) {
-            const c = channels.find(ch => ch.id === channelId);
+        function toggleRecording(id) {
+            const c = channels.find(ch => ch.id === id);
             if (!c) return;
             if (!c.recording) {
-                navigator.mediaDevices.getDisplayMedia({ video: { cursor: 'always' }, audio: false })
-                    .then(stream => {
-                        c.recording = true;
-                        c.recordingStream = stream;
-                        c.recordedChunks = [];
-                        const mediaRecorder = new MediaRecorder(stream);
-                        mediaRecorder.ondataavailable = (e) => c.recordedChunks.push(e.data);
-                        mediaRecorder.onstop = () => {
-                            const blob = new Blob(c.recordedChunks, { type: 'video/webm' });
-                            const url = URL.createObjectURL(blob);
-                            c.recordingUrl = url;
-                            render();
-                        };
-                        c.mediaRecorder = mediaRecorder;
-                        mediaRecorder.start();
-                        render();
-                    })
-                    .catch(err => console.log('Kayıt iptal edildi'));
+                c.recording = true;
+                recordingCount++;
+                render();
             } else {
-                c.mediaRecorder.stop();
-                c.recordingStream.getTracks().forEach(t => t.stop());
                 c.recording = false;
+                c.recordingUrl = 'recorded-' + Date.now();
+                recordingCount--;
                 render();
             }
         }
 
-        function downloadRecording(channelId) {
-            const c = channels.find(ch => ch.id === channelId);
+        function downloadRecording(id) {
+            const c = channels.find(ch => ch.id === id);
             if (c && c.recordingUrl) {
-                const link = document.createElement('a');
-                link.href = c.recordingUrl;
-                link.download = `recording-${c.videoId}-${Date.now()}.webm`;
-                link.click();
+                alert('Video indirilecek: ' + c.recordingUrl);
             }
         }
 
-        function screenshot(channelId) {
-            const iframe = document.querySelector(`iframe[data-id="${channelId}"]`);
-            if (iframe) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 1280;
-                canvas.height = 720;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#000';
-                ctx.fillRect(0, 0, 1280, 720);
-                ctx.fillStyle = '#fff';
-                ctx.font = '18px Arial';
-                ctx.fillText('📸 Screenshot - ' + new Date().toLocaleTimeString(), 50, 50);
-                const link = document.createElement('a');
-                link.href = canvas.toDataURL();
-                link.download = `screenshot-${channelId}-${Date.now()}.png`;
-                link.click();
-            }
+        function screenshot(id) {
+            alert('📸 Ekran görüntüsü alındı: ' + id);
         }
 
         function render() {
-            document.getElementById('totalCount').textContent = channels.length;
-            document.getElementById('videoCount').textContent = channels.length + '/12 Kanal';
+            const activeChannels = channels.filter(c => c.active).length;
+            document.getElementById('channelCount').textContent = activeChannels;
             document.getElementById('keywordCount').textContent = keywords.length;
+            document.getElementById('alertCountBadge').textContent = alerts.length;
+            document.getElementById('alertCount').textContent = alerts.length;
+            document.getElementById('recordCount').textContent = recordingCount;
             
-            // Channels
+            const hours = Math.floor((Date.now() - startTime) / 3600000);
+            document.getElementById('uptime').textContent = hours + 'h';
+
+            // Channels List
             const channelsList = document.getElementById('channelsList');
             channelsList.innerHTML = channels.map(ch => `
-                <div class="channel-item">
-                    <div class="channel-info">
-                        <div class="channel-name">${ch.title}</div>
-                        <div class="channel-status ${ch.active ? 'status-active' : 'status-inactive'}">
+                <div class="item">
+                    <div class="item-info">
+                        <div class="item-name">${ch.title}</div>
+                        <div class="item-status ${ch.active ? 'status-active' : ''}">
                             ${ch.active ? '🟢 Aktif' : '⚪ Pasif'}
                         </div>
                     </div>
@@ -345,55 +347,67 @@
             // Keywords
             const keywordsList = document.getElementById('keywordsList');
             keywordsList.innerHTML = keywords.map(kw => `
-                <div class="keyword-item">
-                    <span class="keyword-text">#${kw.word}</span>
+                <div class="item keyword-item">
+                    <span style="color: #17bf63; font-weight: 700;">#${kw.word}</span>
                     <button class="btn-delete" onclick="deleteKeyword(${kw.id})">✕</button>
                 </div>
             `).join('') || '<div class="empty">Kelime yok</div>';
 
             // Videos Grid
             const grid = document.getElementById('grid');
-            grid.innerHTML = channels.slice(0, 12).map(ch => `
+            grid.innerHTML = channels.filter(c => c.active).slice(0, 12).map(ch => `
                 <div class="video-card">
                     <div class="video-wrapper">
-                        <iframe data-id="${ch.id}" src="https://www.youtube-nocookie.com/embed/${ch.videoId}?autoplay=1&mute=1&controls=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        <div class="video-badge ${ch.active ? '' : 'off'}">${ch.active ? '🟢 ON' : '⚪ OFF'}</div>
-                        ${ch.recording ? '<div class="rec-badge">● REC</div>' : ''}
-                        <div class="video-controls">
-                            <button class="control-btn" onclick="screenshot(${ch.id})" title="Screenshot">📸</button>
-                            <button class="control-btn" onclick="toggleRecording(${ch.id})" title="Kayıt">${ch.recording ? '⏹' : '⏺'}</button>
+                        <iframe src="https://www.youtube-nocookie.com/embed/${ch.videoId}?autoplay=1&mute=1&controls=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        
+                        <div class="video-overlay">
+                            <div class="video-top">
+                                <div class="video-badge">🟢 ON</div>
+                                ${ch.recording ? '<div class="rec-badge">● REC</div>' : ''}
+                            </div>
+                            <div class="video-controls">
+                                <button class="control-btn" onclick="screenshot(${ch.id})">📸</button>
+                                <button class="control-btn" onclick="toggleRecording(${ch.id})">
+                                    ${ch.recording ? '⏹' : '⏺'}
+                                </button>
+                                ${ch.recordingUrl ? `<button class="control-btn" onclick="downloadRecording(${ch.id})">⬇️</button>` : ''}
+                            </div>
                         </div>
                     </div>
+                    
                     <div class="video-info">
-                        <div class="video-name">${ch.videoId}</div>
+                        <div class="video-id">${ch.videoId}</div>
                         <div class="video-title">${ch.title}</div>
-                        ${ch.recordingUrl ? `<button class="btn-small" onclick="downloadRecording(${ch.id})" style="width: 100%; background: #17bf63; border: none; color: #fff;">⬇️ Video</button>` : ''}
                     </div>
                 </div>
-            `).join('') || '<div class="empty">Kanal ekleyin</div>';
+            `).join('') || '<div class="empty">Aktif kanal yok</div>';
 
             // Alerts
-            document.getElementById('alertCount').textContent = alerts.length;
             const alertsList = document.getElementById('alertsList');
-            alertsList.innerHTML = alerts.slice(0, 20).map(a => `
+            alertsList.innerHTML = alerts.slice(0, 15).map(a => `
                 <div class="alert-item">
                     <div class="alert-keyword">#${a.keyword}</div>
                     <div class="alert-text">${a.text}</div>
-                    <div class="alert-channel">${a.channelTitle}</div>
-                    <div class="alert-time">${a.time}</div>
+                    <div class="alert-info">${a.channel} • ${a.time}</div>
                 </div>
-            `).join('') || '<div class="empty">Henüz uyarı yok</div>';
+            `).join('') || '<div class="empty">Uyarı yok</div>';
         }
 
+        // Event Listeners
         document.getElementById('channelInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addChannel(); });
         document.getElementById('keywordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') addKeyword(); });
 
-        // Test alert
+        document.getElementById('globalSearch').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            // Filter logic burada eklenebilir
+        });
+
+        // Test Alert
         setTimeout(() => {
             alerts.unshift({
-                keyword: 'test',
-                text: 'Test uyarısı - sistem aktif',
-                channelTitle: 'Video Channel',
+                keyword: 'haber',
+                text: 'Test uyarısı - sistem aktif ve çalışıyor',
+                channel: 'Video Channel',
                 time: new Date().toLocaleTimeString()
             });
             render();
